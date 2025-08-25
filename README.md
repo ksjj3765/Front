@@ -7,14 +7,19 @@ React와 클래스 컴포넌트를 사용하여 개발된 커뮤니티 앱입니
 ```
 ├── src/
 │   ├── aws-config.js           # AWS Cognito 설정
-│   ├── services/
-│   │   └── AuthService.js      # 인증 서비스
+│   ├── config/
+│   │   └── api-config.js       # MSA API 서비스 설정
+│   ├── services/               # API 서비스 레이어
+│   │   ├── AuthService.js      # Cognito 인증 서비스
+│   │   ├── UserService.js      # User Service MSA 연동
+│   │   ├── PostService.js      # Post Service MSA 연동
+│   │   ├── CommentService.js   # Comment Service MSA 연동
+│   │   └── ApiService.js       # 통합 API 서비스
 │   └── components/             # React 컴포넌트
 │       ├── ProfilePopup.js     # 프로필 팝업
 │       ├── MainBoardPage.js    # 메인 보드 페이지
 │       └── LoginPage.js        # 로그인 페이지
 ├── public/                     # 정적 파일
-│   └── index.html             # HTML 템플릿
 ├── App.js                     # 메인 App 컴포넌트
 ├── index.js                   # React 앱 진입점
 ├── package.json               # 프로젝트 설정
@@ -24,19 +29,26 @@ React와 클래스 컴포넌트를 사용하여 개발된 커뮤니티 앱입니
 └── README.md                  # 프로젝트 설명서
 ```
 
-## 🚀 **AWS 배포 아키텍처**
+## 🚀 **MSA API 서비스 아키텍처**
 
 ```
-사용자 → Route 53 → CloudFront → S3 (프론트엔드)
-                ↓
-            API Gateway → EKS (백엔드 마이크로서비스)
-                ↓
-            Aurora + RDS Proxy (데이터베이스)
+프론트엔드 (React)
+        ↓
+    API Gateway
+        ↓
+┌─────────┬─────────┬─────────┐
+│ User    │ Post    │Comment  │
+│Service  │Service  │Service  │
+│(8081)   │(8082)   │(8083)   │
+└─────────┴─────────┴─────────┘
+        ↓
+    각각의 데이터베이스
 ```
 
 ## ✨ **주요 특징**
 
 - **AWS Cognito 인증**: 안전한 사용자 인증 및 토큰 관리
+- **MSA API 연동**: User, Post, Comment 서비스와 통신
 - **클래스 기반 컴포넌트**: 모든 컴포넌트가 클래스로 구현
 - **자동 토큰 관리**: 로그인/로그아웃 시 자동 토큰 처리
 - **토큰 새로고침**: 만료된 토큰 자동 갱신
@@ -51,16 +63,57 @@ npm install
 
 2. **환경 변수 설정:**
 `.env` 파일을 생성하고 다음 내용을 추가:
+
+#### **AWS Cognito 설정**
 ```env
 REACT_APP_COGNITO_USER_POOL_ID=your_user_pool_id
 REACT_APP_COGNITO_CLIENT_ID=your_client_id
 REACT_APP_COGNITO_REGION=ap-northeast-2
 ```
 
+#### **MSA API 서비스 설정**
+```env
+# User Service
+REACT_APP_USER_SERVICE_URL=http://localhost:8081
+
+# Post Service  
+REACT_APP_POST_SERVICE_URL=http://localhost:8082
+
+# Comment Service
+REACT_APP_COMMENT_SERVICE_URL=http://localhost:8083
+
+# 환경 설정
+NODE_ENV=development
+```
+
 3. **개발 서버 실행:**
 ```bash
 npm start
 ```
+
+## 🔌 **MSA API 서비스 연동**
+
+### **User Service (포트: 8081)**
+- `POST /auth/register` - 회원가입
+- `POST /auth/login` - 로그인
+- `POST /auth/logout` - 로그아웃
+- `GET /users/me` - 내 프로필
+- `PATCH /users/me` - 프로필 수정
+- `DELETE /users/me` - 회원 탈퇴
+
+### **Post Service (포트: 8082)**
+- `POST /posts` - 게시글 작성
+- `GET /posts` - 게시글 목록
+- `GET /posts/{post_id}` - 게시글 상세
+- `PATCH /posts/{post_id}` - 게시글 수정
+- `DELETE /posts/{post_id}` - 게시글 삭제
+- `PATCH /posts/{post_id}` - 게시글 좋아요
+
+### **Comment Service (포트: 8083)**
+- `POST /posts/{post_id}/comments` - 댓글 작성
+- `GET /posts/{post_id}/comments` - 댓글 목록
+- `PATCH /comments/{comment_id}` - 댓글 수정
+- `DELETE /comments/{comment_id}` - 댓글 삭제
 
 ## ☁️ **AWS 배포 방법**
 
@@ -138,6 +191,7 @@ aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --path
 - [ ] IAM 사용자 권한 확인 (S3, CloudFront, Cognito)
 - [ ] Cognito User Pool 및 App Client 생성
 - [ ] S3 버킷 생성 및 정적 웹사이트 호스팅 설정
+- [ ] MSA API 서비스 환경 변수 설정
 
 ### 배포 과정
 - [ ] 환경 변수 설정 (.env 파일)
@@ -149,6 +203,7 @@ aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --path
 ### 배포 후 확인
 - [ ] 웹사이트 접속 테스트
 - [ ] Cognito 로그인/로그아웃 테스트
+- [ ] MSA API 서비스 연동 테스트
 - [ ] HTTPS 연결 확인
 - [ ] 성능 테스트 (PageSpeed Insights)
 
@@ -174,6 +229,19 @@ aws sts get-caller-identity
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ```
 
+### MSA API 연동 오류
+```bash
+# 서비스 상태 확인
+curl http://localhost:8081/health
+curl http://localhost:8082/health
+curl http://localhost:8083/health
+
+# 환경 변수 확인
+echo $REACT_APP_USER_SERVICE_URL
+echo $REACT_APP_POST_SERVICE_URL
+echo $REACT_APP_COMMENT_SERVICE_URL
+```
+
 ## 💰 **비용 최적화**
 
 - **S3**: 월 사용량 기반 과금
@@ -187,6 +255,7 @@ aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 - CORS 정책 설정
 - Cognito 사용자 풀 보안 정책
 - S3 버킷 정책 최소 권한 원칙
+- MSA 서비스 간 인증 토큰 공유
 
 ## 📚 **참고 자료**
 
@@ -194,6 +263,7 @@ aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 - [AWS CloudFront 배포](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.html)
 - [AWS Cognito 사용자 풀](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html)
 - [React 앱 배포 가이드](https://create-react-app.dev/docs/deployment/)
+- [MSA 아키텍처 가이드](https://microservices.io/)
 
 ## 🤝 **기여하기**
 
