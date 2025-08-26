@@ -1,125 +1,197 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import AuthService from '../services/AuthService';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
+import CommonLayout from './CommonLayout';
 
 class LoginPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: "",
-      password: "",
+      username: '',
+      password: '',
+      showPassword: false,
       isLoading: false,
-      errorMessage: ""
+      error: null
     };
   }
 
-  handleLogin = async () => {
+  handleInputChange = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  togglePasswordVisibility = () => {
+    this.setState(prevState => ({ showPassword: !prevState.showPassword }));
+  };
+
+  handleLogin = async (e) => {
+    e.preventDefault();
+    
     const { username, password } = this.state;
     
     if (!username || !password) {
-      this.setState({ errorMessage: "아이디와 비밀번호를 입력해주세요." });
+      this.setState({ error: '사용자 이름과 비밀번호를 모두 입력해주세요.' });
       return;
     }
 
-    this.setState({ isLoading: true, errorMessage: "" });
+    this.setState({ isLoading: true, error: null });
 
     try {
-      const result = await AuthService.login(username, password);
-      
-      // 로그인 성공 시 부모 컴포넌트에 사용자 정보 전달
-      this.props.onLogin({
-        username: result.username,
-        accessToken: result.accessToken,
-        idToken: result.idToken
+      // AWS Cognito와 직접 연결하여 로그인
+      const cognitoResponse = await fetch('https://cognito-idp.ap-northeast-2.amazonaws.com/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-amz-json-1.1',
+          'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
+        },
+        body: JSON.stringify({
+          ClientId: '2v16jp80jce0c40neuuhtlgg8t',
+          UserPoolId: 'ap-northeast-2_nneGIIVuJ',
+          AuthFlow: 'USER_PASSWORD_AUTH',
+          AuthParameters: {
+            USERNAME: username,
+            PASSWORD: password
+          }
+        })
       });
-      
-      this.props.navigate("/");
-    } catch (error) {
-      console.error("로그인 실패:", error);
-      
-      let errorMsg = "로그인에 실패했습니다.";
-      if (error.code === 'NotAuthorizedException') {
-        errorMsg = "아이디 또는 비밀번호가 올바르지 않습니다.";
-      } else if (error.code === 'UserNotConfirmedException') {
-        errorMsg = "이메일 인증이 완료되지 않았습니다.";
-      } else if (error.code === 'UserNotFoundException') {
-        errorMsg = "존재하지 않는 사용자입니다.";
+
+      if (cognitoResponse.ok) {
+        const result = await cognitoResponse.json();
+        
+        if (result.AuthenticationResult) {
+          // 로그인 성공
+          const userData = {
+            username: username,
+            sub: result.AuthenticationResult.AccessToken ? 'cognito_user_' + Date.now() : username,
+            email: username.includes('@') ? username : `${username}@cognito.local`,
+            accessToken: result.AuthenticationResult.AccessToken,
+            id_token: result.AuthenticationResult.IdToken, // WritePostPage와 일치하도록 수정
+            refreshToken: result.AuthenticationResult.RefreshToken,
+            profile: {
+              name: username,
+              username: username
+            }
+          };
+          
+          console.log('Cognito 로그인 성공:', userData);
+          this.props.onLogin(userData);
+          this.props.navigate('/');
+        } else if (result.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+          this.setState({ error: '새 비밀번호를 설정해야 합니다.' });
+        } else if (result.ChallengeName === 'SMS_MFA') {
+          this.setState({ error: 'SMS 인증이 필요합니다.' });
+        } else {
+          this.setState({ error: '로그인에 실패했습니다.' });
+        }
+      } else {
+        const errorData = await cognitoResponse.json();
+        console.error('Cognito 로그인 오류:', errorData);
+        
+        if (errorData.__type === 'NotAuthorizedException') {
+          this.setState({ error: '사용자 이름 또는 비밀번호가 올바르지 않습니다.' });
+        } else if (errorData.__type === 'UserNotConfirmedException') {
+          this.setState({ error: '계정이 확인되지 않았습니다. 이메일을 확인해주세요.' });
+        } else if (errorData.__type === 'UserNotFoundException') {
+          this.setState({ error: '존재하지 않는 사용자입니다.' });
+        } else {
+          this.setState({ error: `로그인 오류: ${errorData.message || '알 수 없는 오류'}` });
+        }
       }
-      
-      this.setState({ errorMessage: errorMsg });
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      this.setState({ error: '네트워크 오류가 발생했습니다.' });
     } finally {
       this.setState({ isLoading: false });
     }
   };
 
   render() {
-    const { username, password, isLoading, errorMessage } = this.state;
+    const { username, password, showPassword, isLoading, error } = this.state;
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-sans text-gray-800">
-        <header className="header">
-          <div className="logo" onClick={() => this.props.navigate("/")}>
-            ☁️
-          </div>
-        </header>
-        <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-lg">
-          <h2 className="mb-6 text-3xl font-bold">로그인</h2>
-          
-          {errorMessage && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {errorMessage}
+      <CommonLayout
+        isLoggedIn={false}
+        currentUser={null}
+        navigate={this.props.navigate}
+      >
+        <div className="auth-page">
+          <div className="auth-container">
+            <div className="auth-header">
+              <h1 className="auth-title">로그인</h1>
+              <p className="auth-subtitle">계정에 로그인하여 커뮤니티를 이용하세요.</p>
             </div>
-          )}
-          
-          <div className="space-y-4">
-            <div className="text-left">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                아이디
-              </label>
-              <input
-                type="text"
-                placeholder="아이디"
-                value={username}
-                onChange={(e) => this.setState({ username: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+
+            <form className="auth-form" onSubmit={this.handleLogin}>
+              <div className="form-group">
+                <label className="form-label">
+                  <User size={16} />
+                  사용자 이름
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={username}
+                  onChange={this.handleInputChange}
+                  className="form-input"
+                  placeholder="사용자 이름을 입력하세요"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Lock size={16} />
+                  비밀번호
+                </label>
+                <div className="password-input-container">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={password}
+                    onChange={this.handleInputChange}
+                    className="form-input"
+                    placeholder="비밀번호를 입력하세요"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={this.togglePasswordVisibility}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                className="auth-button" 
+                disabled={isLoading}
+              >
+                {isLoading ? '로그인 중...' : '로그인'}
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <p>
+                계정이 없으신가요?{' '}
+                <button
+                  onClick={() => this.props.navigate('/signup')}
+                  className="auth-link"
+                >
+                  회원가입하기
+                </button>
+              </p>
             </div>
-            <div className="text-left">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                비밀번호
-              </label>
-              <input
-                type="password"
-                placeholder="비밀번호"
-                value={password}
-                onChange={(e) => this.setState({ password: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              className={`w-full rounded-xl py-3 font-medium text-white shadow transition ${
-                isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-              onClick={this.handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? '로그인 중...' : '로그인'}
-            </button>
-          </div>
-          
-          <div className="mt-6 text-sm text-gray-500">
-            계정이 없으신가요?{" "}
-            <Link
-              to="/signup"
-              className="font-medium text-blue-600 hover:underline"
-            >
-              회원가입
-            </Link>
           </div>
         </div>
-      </div>
+      </CommonLayout>
     );
   }
 }

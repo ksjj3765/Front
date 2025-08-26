@@ -1,71 +1,83 @@
 import React, { Component } from 'react';
-import { LogOut, User } from 'lucide-react';
-import AuthService from '../services/AuthService';
+import { User, LogOut, Settings } from 'lucide-react';
 
 class ProfilePopup extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      isVisible: false
+    };
   }
+
+  handleMyPage = () => {
+    // 마이페이지로 이동
+    this.props.navigate('/mypage');
+    this.props.setShowProfilePopup(false);
+  };
 
   handleLogout = async () => {
     try {
-      await AuthService.logout();
-      
-      // 부모 컴포넌트의 상태 업데이트
-      this.props.setIsLoggedIn(false);
-      this.props.setCurrentUser(null);
-      this.props.setProfileImage(null);
-      
-      alert("로그아웃 되었습니다.");
+      await this.props.onLogout();
+      this.props.setShowProfilePopup(false);
     } catch (error) {
-      console.error("로그아웃 중 오류 발생:", error);
-      alert("로그아웃 처리 중 문제가 발생했습니다.");
+      console.error('로그아웃 중 오류 발생:', error);
     }
   };
 
-  handleMyPage = () => {
-    this.props.onClose();
-    this.props.navigate("/mypage");
-  };
-
   render() {
-    const { onClose, profileImage, currentUser } = this.props;
-    
+    const { currentUser, profileImage, setShowProfilePopup } = this.props;
+
+    // 사용자 정보 디버깅
+    console.log('ProfilePopup render - currentUser:', currentUser);
+    console.log('ProfilePopup render - profileImage:', profileImage);
+
+    if (!this.props.showProfilePopup) {
+      return null;
+    }
+
     return (
-      <div className="absolute right-0 top-12 z-50 w-64 rounded-xl bg-white p-4 shadow-xl ring-1 ring-gray-200">
-        <div className="flex items-center space-x-3 border-b pb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+      <div className="profile-popup">
+        <div className="profile-header">
+          <div className="profile-avatar">
             {profileImage ? (
               <img
                 src={profileImage}
                 alt="Profile"
-                className="h-full w-full rounded-full object-cover"
+                className="profile-avatar"
               />
             ) : (
-              <User size={26} />
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#f3f4f6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#9ca3af'
+              }}>
+                <User size={24} />
+              </div>
             )}
           </div>
-          <div className="flex-1">
-            <p className="text-lg font-bold text-gray-800">
-              {currentUser?.username || "USER"}
-            </p>
-            <p className="text-sm text-gray-500">{currentUser?.email || ""}</p>
+          <div className="profile-info">
+            <h3>{currentUser?.profile?.name || currentUser?.profile?.username || currentUser?.username || "USER"}</h3>
+            <p>{currentUser?.profile?.email || currentUser?.email || ""}</p>
           </div>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="profile-actions">
           <button
-            className="flex w-full items-center space-x-2 rounded-lg p-2 text-left text-gray-700 transition hover:bg-gray-100"
+            className="profile-action-btn"
             onClick={this.handleMyPage}
           >
-            <User size={20} />
+            <Settings size={18} />
             <span>마이페이지</span>
           </button>
           <button
-            className="flex w-full items-center space-x-2 rounded-lg p-2 text-left text-gray-700 transition hover:bg-gray-100"
+            className="profile-action-btn logout"
             onClick={this.handleLogout}
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span>로그아웃</span>
           </button>
         </div>
