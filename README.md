@@ -10,7 +10,7 @@
 ### 1. 프로젝트 클론
 
 ```bash
-git clone https://github.com/ksjj3765/Front.git
+git clone https://github.com/ksjj3765/Front.gitd
 ```
 
 ### 2. 환경 변수 설정
