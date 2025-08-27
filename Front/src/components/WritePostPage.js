@@ -52,7 +52,7 @@ class WritePostPage extends Component {
         throw new Error('인증 토큰이 없습니다. 다시 로그인해주세요.');
       }
 
-      const response = await fetch('http://localhost:5000/api/v1/posts', {
+              const response = await fetch('http://localhost:8081/api/v1/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
