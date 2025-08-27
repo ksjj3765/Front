@@ -29,3 +29,4 @@ echo ""
 echo "📝 로그 확인: docker logs front-container"
 echo "🛑 중지: docker stop front-container"
 echo "🗑️  제거: docker rm front-container"
+
