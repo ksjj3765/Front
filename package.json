@@ -1,7 +1,7 @@
 {
-  "name": "react-community-app",
+  "name": "front-service",
   "version": "1.0.0",
-  "description": "React 기반 커뮤니티 앱 - AWS 배포 최적화",
+  "description": "Front Service - React 기반 게시판 애플리케이션",
   "private": true,
   "scripts": {
     "start": "react-scripts start",

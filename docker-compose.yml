@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  front:
+    build: .
+    container_name: front-service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    restart: unless-stopped
+    networks:
+      - front-network
+
+networks:
+  front-network:
+    driver: bridge
