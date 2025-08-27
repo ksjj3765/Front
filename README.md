@@ -21,14 +21,14 @@ git checkout Combined_repo_Ju
 
 ```env
 # AWS 자격 증명 (MinIO 사용 시)
-AWS_ACCESS_KEY_ID=minioadmin
-AWS_SECRET_ACCESS_KEY=minioadmin
+# AWS Cognito 설정
+REACT_APP_COGNITO_USER_POOL_ID=
+REACT_APP_COGNITO_CLIENT_ID=
+REACT_APP_COGNITO_REGION=ap-northeast-2
 
-# 데이터베이스 설정
-MYSQL_ROOT_PASSWORD=rootpassword
-MYSQL_DATABASE=postdb
-MYSQL_USER=postuser
-MYSQL_PASSWORD=postpass
+# 백엔드 API 설정
+REACT_APP_API_BASE_URL=http://localhost:5000
+REACT_APP_COMMENT_SERVICE_URL=http://localhost:8083
 ```
 
 ### 3. Docker Compose로 실행
