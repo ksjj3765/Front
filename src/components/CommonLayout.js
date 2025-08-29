@@ -3,7 +3,7 @@ import { Search, Plus, User, Home, LogIn, UserPlus, LogOut } from 'lucide-react'
 import "../styles/CommonLayout.css";
 
 const CommonLayout = ({ children, isLoggedIn, currentUser, navigate, hideSidebar = false, activeCategory, onCategoryChange, searchTerm = '', onSearchChange, onWritePost, onLogout }) => {
-  const categories = ["전체", "동물/반려동물", "여행", "건강/헬스", "연예인"];
+  const categories = ["자유", "동물/반려동물", "여행", "건강/헬스", "연예인"];
 
   const handleHomeClick = () => {
     // 홈으로 이동
@@ -21,14 +21,6 @@ const CommonLayout = ({ children, isLoggedIn, currentUser, navigate, hideSidebar
   const handleUserClick = () => {
     // 사용자 개인 페이지로 이동
     navigate('/mypage');
-  };
-
-  const handleWritePostClick = () => {
-    if (onWritePost) {
-      onWritePost();
-    } else {
-      navigate('/write');
-    }
   };
 
   const handleLogoutClick = () => {
@@ -54,7 +46,11 @@ const CommonLayout = ({ children, isLoggedIn, currentUser, navigate, hideSidebar
               style={{ cursor: 'pointer', border: 'none' }}
               title="홈으로 이동"
             >
-              C
+              <img
+                src='/logo.png'
+                alt='Logo'
+                className='logo-image'
+              />
             </button>
           </div>
 
@@ -140,14 +136,7 @@ const CommonLayout = ({ children, isLoggedIn, currentUser, navigate, hideSidebar
                 </div>
               </div>
 
-              {isLoggedIn && (
-                <div className="action-section">
-                  <button className="write-post-button" onClick={handleWritePostClick}>
-                    <Plus size={16} />
-                    글쓰기
-                  </button>
-                </div>
-              )}
+              
             </div>
           </aside>
 
