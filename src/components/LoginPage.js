@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import CommonLayout from './CommonLayout';
+import "../styles/LoginPage.css"
 
 class LoginPage extends Component {
   constructor(props) {
@@ -130,8 +131,7 @@ class LoginPage extends Component {
             <form className="auth-form" onSubmit={this.handleLogin}>
               <div className="form-group">
                 <label className="form-label">
-                  <User size={16} />
-                  사용자 이름
+                  Email
                 </label>
                 <input
                   type="text"
@@ -142,12 +142,12 @@ class LoginPage extends Component {
                   placeholder="사용자 이름을 입력하세요"
                   required
                 />
+                <p className='password-toggle'/>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  <Lock size={16} />
-                  비밀번호
+                  PWD
                 </label>
                 <div className="password-input-container">
                   <input

@@ -1,24 +1,75 @@
 import React, { Component } from 'react';
 import CommonLayout from './CommonLayout';
+import "../styles/MainBoardPage.css";
 
 class MainBoardPage extends Component {
   constructor(props) {
     super(props);
+    const samplePosts = [
+      {
+        id: '1',
+        category: '동물/반려동물',
+        title: '우리집 강아지 자랑',
+        author: '댕댕이사랑',
+        created_at: '2025-08-25T10:00:00Z',
+        view_count: 150,
+        like_count: 45
+      },
+      {
+        id: '2',
+        category: '여행',
+        title: '제주도 2박 3일 여행 후기',
+        author: '여행고수',
+        created_at: '2025-08-24T12:30:00Z',
+        view_count: 220,
+        like_count: 60
+      },
+      {
+        id: '3',
+        category: '건강/헬스',
+        title: '30분 홈트 루틴 공유',
+        author: '운동매니아',
+        created_at: '2025-08-23T15:45:00Z',
+        view_count: 90,
+        like_count: 22
+      },
+      {
+        id: '4',
+        category: '연예인',
+        title: '최근 본 영화 후기!',
+        author: '익명의 덕후',
+        created_at: '2025-08-22T18:00:00Z',
+        view_count: 310,
+        like_count: 88
+      }
+    ];
+
     this.state = {
-      posts: [],
-      allPosts: [], // 원본 게시글 저장
-      filteredPosts: [], // 필터링된 게시글
-      isLoading: true,
+      posts: samplePosts, // Use sample posts for initial data
+      allPosts: samplePosts,
+      filteredPosts: samplePosts,
+      isLoading: false, // Set isLoading to false as data is available
       error: null,
       activeCategory: "전체",
       searchTerm: "",
       sortBy: "최신순"
     };
+    
+    // this.state = {
+    //   posts: [],
+    //   allPosts: [], // 원본 게시글 저장
+    //   filteredPosts: [], // 필터링된 게시글
+    //   isLoading: true,
+    //   error: null,
+    //   activeCategory: "전체",
+    //   searchTerm: "",
+    //   sortBy: "최신순"
+    // };
     this.categories = ["전체", "동물/반려동물", "여행", "건강/헬스", "연예인"];
   }
 
   componentDidMount() {
-    this.loadPosts();
+    // this.loadPosts();
     // URL 파라미터에서 카테고리 확인
     this.checkUrlCategory();
   }
@@ -156,7 +207,7 @@ class MainBoardPage extends Component {
       >
         {/* 필터 및 정렬 섹션 */}
         <div className="filter-section">
-          <div className="category-filters">
+          {/* <div className="category-filters">
             {this.categories.slice(1).map((category) => (
               <button
                 key={category}
@@ -166,7 +217,7 @@ class MainBoardPage extends Component {
                 {category}
               </button>
             ))}
-          </div>
+          </div> */}
           
           <div className="sort-buttons">
             <button
@@ -189,12 +240,12 @@ class MainBoardPage extends Component {
           {/* 테이블 헤더 */}
           <div className="table-header">
             <div className="header-row">
-              <div className="header-cell category-cell">카테고리</div>
-              <div className="header-cell title-cell">제목</div>
-              <div className="header-cell author-cell">글쓴이</div>
-              <div className="header-cell date-cell">작성날짜</div>
-              <div className="header-cell views-cell">조회수</div>
-              <div className="header-cell likes-cell">좋아요</div>
+              <div className="header-cell">카테고리</div>
+              <div className="header-cell">제목</div>
+              <div className="header-cell">글쓴이</div>
+              <div className="header-cell">작성날짜</div>
+              <div className="header-cell">조회수</div>
+              <div className="header-cell">좋아요</div>
             </div>
           </div>
 
@@ -223,7 +274,7 @@ class MainBoardPage extends Component {
               <div className="no-posts" style={{ 
                 textAlign: 'center', 
                 padding: '40px', 
-                color: 'var(--muted-foreground)',
+                color: 'var(--white)',
                 fontSize: '16px',
                 gridColumn: '1 / -1'
               }}>
@@ -233,100 +284,6 @@ class MainBoardPage extends Component {
           </div>
         </div>
 
-        <style jsx>{`
-          .posts-table {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-top: 20px;
-          }
-
-          .table-header {
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
-          }
-
-          .header-row {
-            display: grid;
-            grid-template-columns: 100px 1fr 120px 120px 80px 80px;
-            gap: 1px;
-            background: #f8f9fa;
-          }
-
-          .header-cell {
-            padding: 16px 12px;
-            font-weight: 600;
-            color: #495057;
-            text-align: left;
-            border-right: 1px solid #e9ecef;
-          }
-
-          .header-cell:last-child {
-            border-right: none;
-          }
-
-          .category-cell { text-align: center; }
-          .author-cell { text-align: center; }
-          .date-cell { text-align: center; }
-          .views-cell { text-align: center; }
-          .likes-cell { text-align: center; }
-
-          .table-body {
-            background: white;
-          }
-
-          .table-row {
-            display: grid;
-            grid-template-columns: 100px 1fr 120px 120px 80px 80px;
-            gap: 1px;
-            border-bottom: 1px solid #e9ecef;
-            transition: background-color 0.2s;
-          }
-
-          .table-row:hover {
-            background-color: #f8f9fa;
-          }
-
-          .table-cell {
-            padding: 16px 12px;
-            border-right: 1px solid #e9ecef;
-            display: flex;
-            align-items: center;
-          }
-
-          .table-cell:last-child {
-            border-right: none;
-          }
-
-          .category-tag {
-            background: var(--primary);
-            color: var(--primary-foreground);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-          }
-
-          .post-title-link {
-            color: #212529;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-          }
-
-          .post-title-link:hover {
-            color: var(--primary);
-          }
-
-          .no-posts {
-            grid-column: 1 / -1;
-            padding: 40px;
-            text-align: center;
-            color: var(--muted-foreground);
-            font-size: 16px;
-          }
-        `}</style>
       </CommonLayout>
     );
   }

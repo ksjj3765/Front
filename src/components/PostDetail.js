@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Eye, User, Search } from 'lucide-react';
 import CommonLayout from './CommonLayout';
+import "../styles/PostDetailPage.css"
 
 // useParams를 클래스 컴포넌트에서 사용하기 위한 래퍼
 function withParams(Component) {
@@ -104,17 +105,55 @@ class PostDetail extends Component {
   fetchPostDetail = async () => {
     try {
       const postId = this.props.params.postId;
-      const response = await fetch(`http://localhost:5000/api/v1/posts/${postId}`);
-      
-      if (!response.ok) {
-        throw new Error('게시글을 가져오는데 실패했습니다.');
+
+      // Sample post data for local testing
+      const samplePosts = [
+        {
+          id: '1',
+          category: '동물/반려동물',
+          title: '우리집 강아지 자랑',
+          author: '댕댕이사랑',
+          content: '우리 강아지 복이를 소개합니다! 푸들인데 애교가 정말 많고 똑똑해요. 산책 나갈 때마다 사람들이 귀엽다고 난리랍니다. 복이 사진도 첨부했어요!',
+          created_at: '2025-08-25T10:00:00Z',
+          view_count: 150,
+          like_count: 45,
+          comment_count: 3
+        },
+        {
+          id: '2',
+          category: '여행',
+          title: '제주도 2박 3일 여행 후기',
+          author: '여행고수',
+          content: '제주도 여행 다녀왔습니다! 날씨도 좋고 맛있는 것도 많이 먹었어요. 다음에는 어디로 가볼까요?',
+          created_at: '2025-08-24T12:30:00Z',
+          view_count: 220,
+          like_count: 60,
+          comment_count: 0
+        }
+      ];
+
+      // Find the sample post that matches the postId
+      const samplePost = samplePosts.find(post => post.id === postId);
+
+      if (samplePost) {
+        this.setState({ 
+          post: samplePost, 
+          isLoading: false 
+        });
+      } else {
+        // If no matching sample post is found, simulate an API call to localhost
+        const response = await fetch(`http://localhost:5000/api/v1/posts/${postId}`);
+        
+        if (!response.ok) {
+          throw new Error('게시글을 가져오는데 실패했습니다.');
+        }
+        
+        const data = await response.json();
+        this.setState({ 
+          post: data.post || data.data, 
+          isLoading: false 
+        });
       }
-      
-      const data = await response.json();
-      this.setState({ 
-        post: data.post || data.data, 
-        isLoading: false 
-      });
     } catch (error) {
       console.error('게시글 상세 로드 오류:', error);
       this.setState({ 
@@ -128,6 +167,35 @@ class PostDetail extends Component {
   fetchComments = async () => {
     try {
       const postId = this.props.params.postId;
+
+      const sampleComments = [
+        {
+          id: 'c1',
+          author: '댓글러1',
+          content: '너무 귀여워요! 정말 천사 같아요 😍',
+          created_at: '2025-08-25T10:05:00Z'
+        },
+        {
+          id: 'c2',
+          author: '강아지집사',
+          content: '복이 털 관리는 어떻게 해주세요? 너무 윤기 나네요!',
+          created_at: '2025-08-25T10:10:00Z'
+        },
+        {
+          id: 'c3',
+          author: '댕댕이사랑',
+          content: '댓글 감사합니다! 😄 미용실에서 꼼꼼하게 관리해주고 있어요.',
+          created_at: '2025-08-25T10:15:00Z'
+        }
+      ];
+
+      const isSamplePost = ['1', '2'].includes(postId);
+      if (isSamplePost) {
+        // Use sample comments for sample post '1'
+        this.setState({ comments: postId === '1' ? sampleComments : [] });
+        return;
+      }
+      
       const response = await fetch(`http://localhost:5000/api/v1/posts/${postId}/comments`);
       if (!response.ok) {
         throw new Error('댓글을 가져오는데 실패했습니다.');
@@ -303,12 +371,12 @@ class PostDetail extends Component {
           <h2>댓글 ({comments.length})</h2>
           {/* 댓글 입력 폼 */}
           <form className="comment-form" onSubmit={this.handleCommentSubmit}>
-            <textarea
+            <input
               className="comment-input"
               value={newComment}
               onChange={this.handleCommentChange}
-              placeholder="댓글을 입력하세요..."
-              rows="3"
+              placeholder="댓글을 입력하세요"
+              rows="1"
             />
             <button type="submit" className="comment-submit-btn">작성</button>
           </form>
