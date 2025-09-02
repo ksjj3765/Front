@@ -47,30 +47,24 @@
 
 .sort-btn {
   background: none;
-  border: none;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 4px 8px;
+  margin-right: 16px;
+  position: relative;
   font-size: 16px;
+  font-weight: 500;
   color: var(--dark-navy);
   cursor: pointer;
-  padding-bottom: 8px;
-  margin-right: 24px;
-  position: relative;
-  font-weight: 500;
 }
 
 .sort-btn.active {
   color: var(--darker-navy);
+  border: 2px solid var(--darker-navy);
+  background-color: var(--white);
   font-weight: 600;
 }
 
-.sort-btn.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--darker-navy);
-}
 
 /* ==== 글쓰기 버튼 === */
 .action-section {

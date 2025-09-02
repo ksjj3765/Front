@@ -133,23 +133,25 @@ class LoginPage extends Component {
                 <label className="form-label">
                   Email
                 </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={username}
-                  onChange={this.handleInputChange}
-                  className="form-input"
-                  placeholder="사용자 이름을 입력하세요"
-                  required
-                />
-                <p className='password-toggle'/>
+                <div className='form-input-container'>
+                  <input
+                    type="text"
+                    name="username"
+                    value={username}
+                    onChange={this.handleInputChange}
+                    className="form-input"
+                    placeholder="사용자 이름을 입력하세요"
+                    required
+                  />
+                  <p className='password-toggle'/>
+                </div>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
                   PWD
                 </label>
-                <div className="password-input-container">
+                <div className="form-input-container">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
